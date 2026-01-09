@@ -1,96 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Live IP Auto-Sync</title>
+    <title>Cloudant IP Reader</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        .status-bar { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #10b981; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .ip-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin: 10px 0; }
-        .label { font-size: 0.8rem; color: #64748b; display: block; }
-        .value { font-family: monospace; font-size: 1.2rem; color: #1e293b; font-weight: bold; }
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .ip-card { background: #f4f4f4; border-left: 5px solid #0056b3; margin: 10px 0; padding: 10px; }
     </style>
 </head>
 <body>
+    <h2>Live Data</h2>
+    <div id="ip-container">Fetching data...</div>
 
-<div class="card">
-    <div class="status-bar"><div class="dot"></div> Live Auto-Fetch</div>
-    
-    <div class="ip-box">
-        <span class="label">IP ADDRESS 1</span>
-        <span class="value" id="ip1">---.---.---.---</span>
-    </div>
+    <script>
+        const config = {
+            username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
+            password: "73dfdffc58e1d490665ba7772a7536f5",
+            host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
+            dbName: "ips" // <-- Update this!
+        };
 
-    <div class="ip-box">
-        <span class="label">IP ADDRESS 2</span>
-        <span class="value" id="ip2">---.---.---.---</span>
-    </div>
+        async function getIPs() {
+            const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/ips/ip1`;
+            const auth = btoa(`${config.username}:${config.password}`);
 
-    <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px;" id="last-update">
-        Waiting for first change...
-    </div>
-</div>
-
-<script>
-    // --- SETTINGS ---
-    const DB_BASE_URL = "https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/",
-";
-    const API_KEY = "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn";
-    const PASSWORD = "73dfdffc58e1d490665ba7772a7536f5";
-
-    const headers = new Headers();
-    headers.set('Authorization', 'Basic ' + btoa(API_KEY + ":" + PASSWORD));
-
-    // 'now' means only fetch changes that happen AFTER the page loads
-    let since = "now"; 
-
-    async function startAutoFetch() {
-        // longpoll waits for a change. doc_ids=ips filters for ONLY your specific document.
-        const url = `${DB_BASE_URL}/_changes?feed=longpoll&include_docs=true&since=${since}&doc_ids=["ips"]&heartbeat=15000`;
-
-        try {
-            const response = await fetch(url, { method: 'GET', headers: headers });
-            const result = await response.json();
-
-            if (result.results && result.results.length > 0) {
-                // Get the most recent version of the 'ips' document
-                const latestDoc = result.results[0].doc;
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Basic ${auth}` }
+                });
+                const data = await response.json();
                 
-                // Update the UI
-                document.getElementById('ip1').innerText = latestDoc.ip1 || "N/A";
-                document.getElementById('ip2').innerText = latestDoc.ip2 || "N/A";
-                document.getElementById('last-update').innerText = "Updated: " + new Date().toLocaleTimeString();
-                
-                // Set 'since' to the last sequence so we don't get the same change twice
-                since = result.last_seq;
+                const container = document.getElementById('ip-container');
+                container.innerHTML = "<p>IP Address: " + data.ip + "</p>"; // Clear loading
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('ip-container').innerText = "Failed to hello data.";
             }
-        } catch (err) {
-            console.error("Connection lost. Retrying...", err);
-            // Wait 5 seconds before retrying if there is a network error
-            await new Promise(resolve => setTimeout(resolve, 5000));
         }
 
-        // Immediately start waiting for the next update
-        startAutoFetch();
-    }
-
-    // Initial fetch to get current values immediately on load
-    async function initialLoad() {
-        try {
-            const res = await fetch(`${DB_BASE_URL}/ips`, { headers });
-            const data = await res.json();
-            document.getElementById('ip1').innerText = data.ip1;
-            document.getElementById('ip2').innerText = data.ip2;
-            document.getElementById('last-update').innerText = "Initial Load Complete";
-        } catch (e) { console.log("Initial load failed"); }
-        
-        startAutoFetch();
-    }
-
-    initialLoad();
-</script>
+        getIPs();
+    </script>
 </body>
 </html>
