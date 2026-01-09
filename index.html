@@ -35,7 +35,7 @@
         }
 
         async function getIPs() {
-            const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/ips/ip1`;
+            const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/image/my_jpeg`;
             const auth = btoa(`${config.username}:${config.password}`);
 
             try {
@@ -43,11 +43,11 @@
                     headers: { 'Authorization': `Basic ${auth}` }
                 });
                 const data = await response.json();
-                const rawBase64Data = data.ip;
+                const rawBase64Data = data.cnt;
                 const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
                 
                 const container = document.getElementById('ip-container');
-                container.innerHTML = "<p>IP Address: " + data.ip + "</p>"; // Clear loading
+                container.innerHTML = "<p>IP Address: " + data.cnt + "</p>"; // Clear loading
 
                 // Get a reference to the HTML image element
                 const imageElement = document.getElementById("myImage");
