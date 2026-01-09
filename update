@@ -1,0 +1,79 @@
+import time
+import uuid
+from ibmcloudant.cloudant_v1 import CloudantV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+import cv2
+import numpy as np
+import base64
+import json
+from PIL import ImageGrab
+import io
+
+# --------------------------------
+# Cloudant Configuration
+# --------------------------------
+API_KEY = "izRbEEw5ddrvlFaK_qEeKWuzvUIZ3ywflRHVmq9U1_Wp"
+SERVICE_URL = "https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud"
+DB_NAME = "image"
+
+# --------------------------------
+# Authenticator & Client
+# --------------------------------
+authenticator = IAMAuthenticator(API_KEY)
+cloudant = CloudantV1(authenticator=authenticator)
+cloudant.set_service_url(SERVICE_URL)
+
+# --------------------------------
+# Create DB if not exists
+# --------------------------------
+try:
+    cloudant.get_database_information(db=DB_NAME).get_result()
+    print(f"Connected to database '{DB_NAME}'")
+except Exception:
+    cloudant.put_database(db=DB_NAME).get_result()
+    print(f"Database '{DB_NAME}' created")
+
+# --------------------------------
+# Continuous Insert Loop
+# --------------------------------
+doc_id = "my_jpeg"
+
+response = cloudant.get_document(
+    db="image",
+    doc_id="my_jpeg"
+).get_result()
+
+current_rev = response["_rev"]
+
+while(True):
+    screen = ImageGrab.grab(bbox=(1000,1000,1400,1400)) # Set bbox=(x1, y1, x2, y2) for a specific region
+    # Convert the PIL image to a NumPy array that OpenCV can use
+    screen_numpy = np.array(screen)
+    # Convert the color space from RGB (PIL default) to BGR (OpenCV default)
+    # This is important for correct color display
+    screen_opencv = cv2.cvtColor(screen_numpy, cv2.COLOR_RGB2BGR)
+    #resized_image = cv2.resize(screen_opencv, (1280, 720))
+    retval, buffer = cv2.imencode('.jpg', screen_opencv)
+    jpg_as_text = base64.b64encode(buffer)
+    # Display the captured screen frame in a window
+    #cv2.imshow('Screen Capture', screen_opencv)
+    document = {
+        "_id": doc_id,
+        "_rev": current_rev,
+        "data": jpg_as_text.decode('utf-8'),
+        "cnt": round(25 + (time.time() % 5), 2),
+        "name": "temperature"
+    }
+    print(document)
+    try:
+        response = cloudant.post_document(
+            db=DB_NAME,
+            document=document
+        ).get_result()
+        print("Inserted:", response["id"])
+        current_rev = response["rev"]
+    except Exception as e:
+        print("Insert failed:", e)
+    #time.sleep(0.1)
+
+#cv2.destroyAllWindows()
