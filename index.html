@@ -43,7 +43,7 @@
                     headers: { 'Authorization': `Basic ${auth}` }
                 });
                 const data = await response.json();
-                const rawBase64Data = data.cnt;
+                const rawBase64Data = data.data;
                 const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
                 
                 const container = document.getElementById('ip-container');
