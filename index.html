@@ -10,17 +10,18 @@
 <body>
     <h2>Live Data</h2>
     <div id="ip-container">Fetching data...</div>
-<!--
-Source - https://stackoverflow.com/a
-Posted by VinayC, modified by community. See post 'Timeline' for change history
-Retrieved 2026-01-09, License - CC BY-SA 4.0
--->
-
-<div>
-  <img src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
-    AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-        9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="Red dot" />
-</div>
+    <!--
+    Source - https://stackoverflow.com/a
+    Posted by VinayC, modified by community. See post 'Timeline' for change history
+    Retrieved 2026-01-09, License - CC BY-SA 4.0
+    -->
+    
+    <div>
+    
+    <img id="myImage" src=src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+        AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+            9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="Embedded Image">
+    </div>
     <script>
         const config = {
             username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
@@ -42,9 +43,20 @@ Retrieved 2026-01-09, License - CC BY-SA 4.0
                     headers: { 'Authorization': `Basic ${auth}` }
                 });
                 const data = await response.json();
+                const rawBase64Data = data.ip;
+                const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
                 
                 const container = document.getElementById('ip-container');
                 container.innerHTML = "<p>IP Address: " + data.ip + "</p>"; // Clear loading
+
+                // Get a reference to the HTML image element
+                const imageElement = document.getElementById("myImage");
+                // Set the src attribute of the image to the data URI
+                if (imageElement) {
+                    imageElement.src = dataUri;
+                } else {
+                    console.error("Image element not found!");
+                }
 
             } catch (err) {
                 console.error(err);
@@ -56,3 +68,4 @@ Retrieved 2026-01-09, License - CC BY-SA 4.0
     </script>
 </body>
 </html>
+
