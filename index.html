@@ -18,6 +18,10 @@
             host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
             dbName: "ips" // <-- Update this!
         };
+        async function update() {
+            getIPs();
+            setTimeout(update, 250); // Refresh every 10 seconds
+        }
 
         async function getIPs() {
             const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/ips/ip1`;
@@ -34,11 +38,11 @@
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('ip-container').innerText = "Failed to hello data.";
+                document.getElementById('ip-container').innerText = "Failed to load data.";
             }
         }
 
-        getIPs();
+        update();
     </script>
 </body>
 </html>
