@@ -1,1 +1,138 @@
 
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Cloudant IP Reader</title>
+
+<style>
+
+body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+
+.ip-card { background: #f4f4f4; border-left: 5px solid #0056b3; margin: 10px 0; padding: 10px; }
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Live Data</h2>
+
+<div id="ip-container">Fetching data...</div>
+
+<!--
+
+Source - https://stackoverflow.com/a
+
+Posted by VinayC, modified by community. See post 'Timeline' for change history
+
+Retrieved 2026-01-09, License - CC BY-SA 4.0
+
+-->
+
+
+<div>
+
+
+<img id="myImage" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+
+AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+
+9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="live">
+
+</div>
+
+<script>
+
+const config = {
+
+username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
+
+password: "73dfdffc58e1d490665ba7772a7536f5",
+
+host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
+
+dbName: "ips" // <-- Update this!
+
+};
+
+async function update() {
+
+getIPs();
+
+setTimeout(update, 180); // Refresh every 10 seconds
+
+}
+
+
+
+async function getIPs() {
+
+const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/image/myjpeg1`;
+
+const auth = btoa(`${config.username}:${config.password}`);
+
+
+
+try {
+
+const response = await fetch(url, {
+
+headers: { 'Authorization': `Basic ${auth}` }
+
+});
+
+const data = await response.json();
+
+const rawBase64Data = data.data;
+
+const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
+
+
+const container = document.getElementById('ip-container');
+
+container.innerHTML = "<p>IP Address: " + data.cnt + "</p>"; // Clear loading
+
+
+
+// Get a reference to the HTML image element
+
+const imageElement = document.getElementById("myImage");
+
+// Set the src attribute of the image to the data URI
+
+if (imageElement) {
+
+imageElement.src = dataUri;
+
+} else {
+
+console.error("Image element not found!");
+
+}
+
+
+
+} catch (err) {
+
+console.error(err);
+
+document.getElementById('ip-container').innerText = "Failed to load data.";
+
+}
+
+}
+
+
+
+update();
+
+</script>
+
+</body>
+
+</html>
+
