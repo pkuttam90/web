@@ -30,7 +30,7 @@
         dbName: "ips" // Make sure this matches your actual Cloudant DB name
     };
 
-    let currentRotation = 0; // Track rotation angle if you want visual rotation
+    let currentRotation = 180; // Track rotation angle if you want visual rotation
 
     async function update() {
         await getIPs();
