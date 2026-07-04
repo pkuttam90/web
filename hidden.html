@@ -1,92 +1,137 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
-    <title>Cloudant IP Reader</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .ip-card { background: #f4f4f4; border-left: 5px solid #0056b3; margin: 10px 0; padding: 10px; }
-    </style>
+
+<title>Cloudant IP Reader</title>
+
+<style>
+
+body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+
+.ip-card { background: #f4f4f4; border-left: 5px solid #0056b3; margin: 10px 0; padding: 10px; }
+
+</style>
+
 </head>
+
 <body>
-    <h2>Live Data</h2>
-    <div id="ip-container">Fetching data...</div>
-    <!--
-    Source - https://stackoverflow.com/a
-    Posted by VinayC, modified by community. See post 'Timeline' for change history
-    Retrieved 2026-01-09, License - CC BY-SA 4.0
-    -->
-    
-    <div>
-    
-    <img id="myImage" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
-        AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-            9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="live">
-    </div>
-    <script>
-    const config = {
-        username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
-        password: "73dfdffc58e1d490665ba7772a7536f5",
-        host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
-        dbName: "ips" // Make sure this matches your actual Cloudant DB name
-    };
 
-    let currentRotation = 180; // Track rotation angle if you want visual rotation
+<h2>Live Data</h2>
 
-    async function update() {
-        await getIPs();
-        setTimeout(update, 10000); // 10 seconds interval
-    }
+<div id="ip-container">Fetching data...</div>
 
-    async function getIPs() {
-        // FIXED: Using dynamic URL based on your config object
-        const docId = "my_jpeg"; 
-        const url = `https://${config.host}/${config.dbName}/${docId}`;
-        const auth = btoa(`${config.username}:${config.password}`);
+<!--
 
-        try {
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Basic ${auth}` }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+Source - https://stackoverflow.com/a
 
-            const data = await response.json();
-            
-            // FIXED: Clean whitespace out of base64 data string
-            const rawBase64Data = data.data; 
-            const cleanBase64 = rawBase64Data.replace(/\s/g, '');
-            const dataUri = `data:image/jpeg;base64,${cleanBase64}`;
-            
-            // Update IP text
-            const container = document.getElementById('ip-container');
-            container.innerHTML = "<p>IP Address: " + (data.cnt || "N/A") + "</p>";
+Posted by VinayC, modified by community. See post 'Timeline' for change history
 
-            // Update Image
-            const imageElement = document.getElementById("myImage");
-            if (imageElement) {
-                imageElement.src = dataUri;
-                
-                // OPTIONAL: If you want to visually rotate the image 90 degrees every refresh
-                currentRotation = (currentRotation + 90) % 360;
-                imageElement.style.transform = `rotate(${currentRotation}deg)`;
-                imageElement.style.transition = "transform 0.5s ease"; // Smooth transition
-            } 
+Retrieved 2026-01-09, License - CC BY-SA 4.0
 
-        } catch (err) {
-            console.error("Fetch failed: ", err);
-            document.getElementById('ip-container').innerText = "Failed to load data.";
-        }
-    }
+-->
 
-    // Initialize
-    update();
+
+<div>
+
+
+<img id="myImage" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+
+AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+
+9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="live">
+
+</div>
+
+<script>
+
+const config = {
+
+username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
+
+password: "73dfdffc58e1d490665ba7772a7536f5",
+
+host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
+
+dbName: "ips" // <-- Update this!
+
+};
+
+async function update() {
+
+getIPs();
+
+setTimeout(update, 180); // Refresh every 10 seconds
+
+}
+
+
+
+async function getIPs() {
+
+const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/image/my_jpeg`;
+
+const auth = btoa(`${config.username}:${config.password}`);
+
+
+
+try {
+
+const response = await fetch(url, {
+
+headers: { 'Authorization': `Basic ${auth}` }
+
+});
+
+const data = await response.json();
+
+const rawBase64Data = data.data;
+
+const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
+
+
+const container = document.getElementById('ip-container');
+
+container.innerHTML = "<p>IP Address: " + data.cnt + "</p>"; // Clear loading
+
+
+
+// Get a reference to the HTML image element
+
+const imageElement = document.getElementById("myImage");
+
+// Set the src attribute of the image to the data URI
+
+if (imageElement) {
+
+imageElement.src = dataUri;
+
+} else {
+
+console.error("Image element not found!");
+
+}
+
+
+
+} catch (err) {
+
+console.error(err);
+
+document.getElementById('ip-container').innerText = "Failed to load data.";
+
+}
+
+}
+
+
+
+update();
+
 </script>
+
 </body>
+
 </html>
-
-
-
-
 
