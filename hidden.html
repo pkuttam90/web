@@ -23,48 +23,70 @@
             9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="live">
     </div>
     <script>
-        const config = {
-            username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
-            password: "73dfdffc58e1d490665ba7772a7536f5",
-            host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
-            dbName: "ips" // <-- Update this!
-        };
-        async function update() {
-            getIPs();
-            setTimeout(update, 180); // Refresh every 10 seconds
-        }
+    const config = {
+        username: "apikey-v2-2vff0cmogghm42cl5ms848ye50s93ke35gwkbkhymdbn",
+        password: "73dfdffc58e1d490665ba7772a7536f5",
+        host: "0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud",
+        dbName: "ips" // Make sure this matches your actual Cloudant DB name
+    };
 
-        async function getIPs() {
-            const url = `https://0ec651a5-a479-4088-9009-39168488af7c-bluemix.cloudantnosqldb.appdomain.cloud/image/my_jpeg`;
-            const auth = btoa(`${config.username}:${config.password}`);
+    let currentRotation = 0; // Track rotation angle if you want visual rotation
 
-            try {
-                const response = await fetch(url, {
-                    headers: { 'Authorization': `Basic ${auth}` }
-                });
-                const data = await response.json();
-                const rawBase64Data = data.data;
-                const dataUri = `data:image/jpeg;base64, ${rawBase64Data}`;
-                
-                const container = document.getElementById('ip-container');
-                container.innerHTML = "<p>IP Address: " + data.cnt + "</p>"; // Clear loading
+    async function update() {
+        await getIPs();
+        setTimeout(update, 10000); // 10 seconds interval
+    }
 
-                // Get a reference to the HTML image element
-                const imageElement = document.getElementById("myImage");
-                // Set the src attribute of the image to the data URI
-                if (imageElement) {
-                    imageElement.src = dataUri;
-                } else {
-                    console.error("Image element not found!");
-                }
+    async function getIPs() {
+        // FIXED: Using dynamic URL based on your config object
+        const docId = "my_jpeg"; 
+        const url = `https://${config.host}/${config.dbName}/${docId}`;
+        const auth = btoa(`${config.username}:${config.password}`);
 
-            } catch (err) {
-                console.error(err);
-                document.getElementById('ip-container').innerText = "Failed to load data.";
+        try {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Basic ${auth}` }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }
 
-        update();
-    </script>
+            const data = await response.json();
+            
+            // FIXED: Clean whitespace out of base64 data string
+            const rawBase64Data = data.data; 
+            const cleanBase64 = rawBase64Data.replace(/\s/g, '');
+            const dataUri = `data:image/jpeg;base64,${cleanBase64}`;
+            
+            // Update IP text
+            const container = document.getElementById('ip-container');
+            container.innerHTML = "<p>IP Address: " + (data.cnt || "N/A") + "</p>";
+
+            // Update Image
+            const imageElement = document.getElementById("myImage");
+            if (imageElement) {
+                imageElement.src = dataUri;
+                
+                // OPTIONAL: If you want to visually rotate the image 90 degrees every refresh
+                currentRotation = (currentRotation + 90) % 360;
+                imageElement.style.transform = `rotate(${currentRotation}deg)`;
+                imageElement.style.transition = "transform 0.5s ease"; // Smooth transition
+            } 
+
+        } catch (err) {
+            console.error("Fetch failed: ", err);
+            document.getElementById('ip-container').innerText = "Failed to load data.";
+        }
+    }
+
+    // Initialize
+    update();
+</script>
 </body>
 </html>
+
+
+
+
+
